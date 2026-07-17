@@ -83,9 +83,11 @@ cd app_mobile
 # 2. Compiler et installer l'APK
 # Connecter un smartphone en mode débogage USB
 # Cliquer sur "Run" dans Android Studio
-
+```
 
 ### Application web
+
+```bash
 # 1. Lancer le serveur IA (Python/Flask)
 cd ia
 pip install -r requirements.txt
@@ -95,6 +97,8 @@ python yolo_server.py
 cd ../app_web
 npm install
 npm start
+```
+
 🚀 Utilisation
 Application mobile
 Ouvrir l'application EyeSense sur le smartphone
