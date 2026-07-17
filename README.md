@@ -100,7 +100,9 @@ npm start
 ```
 
 🚀 Utilisation
+---------------
 Application mobile
+------------------
 Ouvrir l'application EyeSense sur le smartphone
 
 Autoriser l'accès à la caméra et à la localisation
@@ -110,6 +112,7 @@ Appuyer sur "Démarrer" pour lancer la détection
 En cas de somnolence détectée, une alerte est déclenchée
 
 Application web
+------------------
 Ouvrir https://192.168.1.65:3443 dans un navigateur
 Autoriser l'accès à la caméra
 Appuyer sur "Start" pour lancer la détection
