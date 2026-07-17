@@ -1,0 +1,2 @@
+Modèle,mAP50,mAP50-95,Precision,Recall
+yolo26n.pt,99.1%,90.1%,98.0%,98.1%

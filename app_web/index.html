@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EyeSense - YOLO Detection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { max-width: 500px; width: 100%; }
+        
+        header { text-align: center; margin-bottom: 30px; }
+        .logo { font-size: 64px; margin-bottom: 8px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        h1 { font-size: 28px; margin-bottom: 4px; }
+        .subtitle { color: #0668be; font-size: 13px; }
+        
+        .card {
+            background: rgba(26, 31, 58, 0.9);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-section { text-align: center; }
+        .status-icon { font-size: 56px; margin-bottom: 12px; display: block; }
+        .status-text { font-size: 20px; font-weight: bold; margin-bottom: 8px; min-height: 28px; }
+        .confidence { color: #ffb700; font-size: 14px; margin-bottom: 4px; }
+        .frames { color: #085db1; font-size: 12px; margin-bottom: 12px; }
+        
+        .info-box {
+            background: rgba(0, 212, 255, 0.08);
+            border-left: 3px solid #00d4ff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-top: 12px;
+            text-align: left;
+        }
+        .info-box.success { border-left-color: #26d07c; }
+        .info-box.warning { border-left-color: #ff6b6b; }
+        
+        video {
+    width: 100%;
+    border-radius: 12px;
+    background: #000;
+    display: none;
+    filter: brightness(1.5) contrast(1.1);
+    
+    transition: filter 0.3s ease;
+}
+        
+        .button-group { display: flex; flex-direction: column; gap: 10px; }
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4); }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #cc0000);
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4); }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgb(0, 0, 0);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); }
+        
+        .btn-test {
+            background: linear-gradient(135deg, #ffb700, #ff8c00);
+            color: rgb(168, 8, 8);
+            padding: 10px;
+            font-size: 13px;
+            flex: 1;
+        }
+        .btn-test:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(255, 184, 0, 0.4); }
+        
+        .btn-alert {
+            background: #ff6b6b;
+            color: white;
+            display: none;
+            animation: pulse-alert 1s infinite;
+        }
+        @keyframes pulse-alert {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .btn-alert:hover { box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4); }
+        
+        .alert-box {
+            background: rgba(255, 107, 107, 0.15);
+            border-left: 3px solid #ff6b6b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: none;
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 15px;
+            text-align: center;
+            animation: pulse-alert 1s infinite;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 16px;
+            color: #00d4ff;
+        }
+        .spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid #00d4ff;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .success-message {
+            background: rgba(38, 208, 124, 0.1);
+            border-left: 3px solid #26d07c;
+            color: #26d07c;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .test-buttons button { flex: 1; }
+        
+        .row-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .row-buttons button { flex: 1; }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-online { background: rgba(38, 208, 124, 0.2); color: #26d07c; }
+        .badge-offline { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+        
+        .sound-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #ff6b6b;
+            animation: pulse-alert 0.5s infinite;
+        }
+        .sound-indicator.active { display: flex; }
+        .sound-wave {
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: #ff6b6b;
+            margin: 0 2px;
+            animation: sound-wave 0.5s infinite alternate;
+        }
+        .sound-wave:nth-child(2) { animation-delay: 0.1s; height: 24px; }
+        .sound-wave:nth-child(3) { animation-delay: 0.2s; height: 32px; }
+        .sound-wave:nth-child(4) { animation-delay: 0.3s; height: 24px; }
+        .sound-wave:nth-child(5) { animation-delay: 0.4s; height: 16px; }
+        @keyframes sound-wave {
+            0% { height: 8px; }
+            100% { height: 32px; }
+        }
+        
+        .location-box {
+            background: rgba(0, 212, 255, 0.08);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #7b8fa3;
+            margin-top: 8px;
+            display: none;
+            text-align: center;
+        }
+        .location-box.active { display: block; }
+        .location-box .label { color: #00d4ff; font-weight: bold; }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 24px; }
+            .logo { font-size: 48px; }
+            .card { padding: 18px; }
+            .status-icon { font-size: 44px; }
+            .status-text { font-size: 17px; }
+            .test-buttons button { font-size: 12px; padding: 8px; }
+            button { padding: 12px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">👁️</div>
+            <h1>EyeSense YOLO</h1>
+            <p class="subtitle">Real-time drowsiness detection</p>
+        </header>
+
+        <div class="success-message" id="successMessage">
+            ✅ <span id="successText"></span>
+        </div>
+
+        <div class="alert-box" id="alertBox">
+            ⚠️ DROWSINESS DETECTED! Automatic alert sending...
+        </div>
+
+        <div class="card">
+            <div class="status-section">
+                <div id="loadingIndicator" class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top:8px;">Connecting to YOLO server...</p>
+                    <p style="font-size:11px;color:#7b8fa3;margin-top:4px;">python yolo_server.py</p>
+                </div>
+                <div class="status-icon" id="statusIcon" style="display:none;"></div>
+                <div class="status-text" id="statusText" style="display:none;">Ready</div>
+                <div class="confidence" id="confidence" style="display:none;">Confidence: --%</div>
+                <div class="frames" id="frames" style="display:none;">Frames: 0</div>
+                
+                <div class="sound-indicator" id="soundIndicator">
+                    <span>🔊 ALARM ACTIVE</span>
+                    <div class="sound-wave"></div>
+                    <div class="sound-wave"></div>
+                    <div class="sound-wave"></div>
+                    <div class="sound-wave"></div>
+                    <div class="sound-wave"></div>
+                </div>
+                
+                <div class="location-box" id="locationBox">
+                    <span class="label">📍 Location:</span>
+                    <span id="locationText">Retrieving...</span>
+                </div>
+                
+                <div class="info-box" id="serverStatus">
+                    🔄 Checking server...
+                </div>
+                <div class="info-box" id="classInfo" style="display:none;margin-top:8px;">
+                    Class: <span id="classDisplay">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="startBtn" onclick="toggleDetection()" disabled>
+                ▶ Start
+            </button>
+            
+            <button class="btn-alert" id="alertBtn" onclick="sendManualAlert()">
+                🚨 Emergency Alert
+            </button>
+            
+            <div class="row-buttons">
+                <button class="btn-secondary" onclick="window.location.href='/settings.html'">
+                    ⚙️ Settings
+                </button>
+                <button class="btn-secondary" onclick="window.location.href='/contacts.html'">
+                    📇 Contacts
+                </button>
+            </div>
+        </div>
+
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <script>
+       
+
+function getApiUrl() {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    console.log(`🔍 Host: ${hostname}, Protocol: ${protocol}`);
+    
+    if (protocol === 'https:') {
+        return `https://${hostname}:3444`;
+    }
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+    
+    return `https://${hostname}:3444`;
+}
+
+const API_URL = getApiUrl();
+const ALERT_THRESHOLD = 3;
+
+console.log(`📡 API URL: ${API_URL}`);
+console.log(`📍 Host: ${window.location.hostname}`);
+console.log(`🔒 Protocol: ${window.location.protocol}`);
+        
+        const video = document.getElementById('video');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const confidenceText = document.getElementById('confidence');
+        const framesText = document.getElementById('frames');
+        const startBtn = document.getElementById('startBtn');
+        const alertBtn = document.getElementById('alertBtn');
+        const alertBox = document.getElementById('alertBox');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const successMessage = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+        const serverStatus = document.getElementById('serverStatus');
+        const classDisplay = document.getElementById('classDisplay');
+        const classInfo = document.getElementById('classInfo');
+        const soundIndicator = document.getElementById('soundIndicator');
+        const locationBox = document.getElementById('locationBox');
+        const locationText = document.getElementById('locationText');
+
+        let isRunning = false;
+        let frameCount = 0;
+        let alertCount = 0;
+        let isServerReady = false;
+        let isForceMode = false;
+        let forceResult = null;
+        let alarmActive = false;
+        let audioContext = null;
+        let alarmInterval = null;
+        let isAlarmPlaying = false;
+        let activeAlarmNodes = [];
+        let currentLocation = null;
+
+       
+        function getLocation() {
+            return new Promise((resolve) => {
+                locationBox.classList.add('active');
+                locationText.textContent = 'Retrieving...';
+                
+                if (!navigator.geolocation) {
+                    locationText.textContent = '❌ Not available';
+                    resolve({
+                        success: false,
+                        message: 'Location not available',
+                        text: 'Location not available',
+                        latitude: '0.0',
+                        longitude: '0.0'
+                    });
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const loc = {
+                            success: true,
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            text: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
+                            url: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`
+                        };
+                        currentLocation = loc;
+                        locationText.textContent = `📍 ${loc.text}`;
+                        resolve(loc);
+                    },
+                    (error) => {
+                        locationText.textContent = `❌ ${error.message}`;
+                        resolve({
+                            success: false,
+                            message: error.message,
+                            text: 'Location not available',
+                            latitude: '0.0',
+                            longitude: '0.0'
+                        });
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+        }
+
+       
+        function playAlarmSound() {
+            try {
+                if (alarmActive) return;
+                alarmActive = true;
+                isAlarmPlaying = true;
+                soundIndicator.classList.add('active');
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                function playAlarmCycle() {
+                    if (!alarmActive || !isAlarmPlaying) return;
+                    
+                    try {
+                        const frequencies = [880, 440, 880, 440, 880, 440];
+                        const durations = [0.15, 0.15, 0.15, 0.15, 0.15, 0.15];
+                        let time = 0;
+                        
+                        frequencies.forEach((freq, index) => {
+                            const oscillator = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            
+                            oscillator.type = 'square';
+                            oscillator.frequency.value = freq;
+                            
+                            gain.gain.setValueAtTime(0.3, audioContext.currentTime + time);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + durations[index]);
+                            
+                            oscillator.connect(gain);
+                            gain.connect(audioContext.destination);
+                            
+                            oscillator.start(audioContext.currentTime + time);
+                            oscillator.stop(audioContext.currentTime + time + durations[index]);
+
+                            // Keep a reference so stopAlarmSound() can kill this node instantly
+                            const nodeRef = { oscillator, gain };
+                            activeAlarmNodes.push(nodeRef);
+                            oscillator.onended = () => {
+                                const idx = activeAlarmNodes.indexOf(nodeRef);
+                                if (idx !== -1) activeAlarmNodes.splice(idx, 1);
+                            };
+                        });
+                        
+                    } catch (error) {
+                        console.error('❌ Cycle error:', error);
+                    }
+                }
+                
+                playAlarmCycle();
+                
+                alarmInterval = setInterval(() => {
+                    if (alarmActive && isAlarmPlaying) {
+                        playAlarmCycle();
+                    } else {
+                        clearInterval(alarmInterval);
+                        alarmInterval = null;
+                    }
+                }, 1500);
+                
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
+                    let vibrateInterval = setInterval(() => {
+                        if (alarmActive && isAlarmPlaying) {
+                            navigator.vibrate([200, 100, 200, 100, 200]);
+                        } else {
+                            clearInterval(vibrateInterval);
+                        }
+                    }, 3000);
+                    window._vibrateInterval = vibrateInterval;
+                }
+                
+                console.log('🔊 Alarm activated (loop)');
+                
+            } catch (error) {
+                console.error('❌ Audio error:', error);
+                try {
+                    if (navigator.vibrate) {
+                        navigator.vibrate([200, 100, 200, 100, 200]);
+                        let vibrateInterval = setInterval(() => {
+                            if (alarmActive && isAlarmPlaying) {
+                                navigator.vibrate([200, 100, 200, 100, 200]);
+                            } else {
+                                clearInterval(vibrateInterval);
+                            }
+                        }, 3000);
+                        window._vibrateInterval = vibrateInterval;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function stopAlarmSound() {
+            alarmActive = false;
+            isAlarmPlaying = false;
+            soundIndicator.classList.remove('active');
+            
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+            
+            if (window._vibrateInterval) {
+                clearInterval(window._vibrateInterval);
+                window._vibrateInterval = null;
+            }
+
+           
+            if (audioContext) {
+                const now = audioContext.currentTime;
+                activeAlarmNodes.forEach(({ oscillator, gain }) => {
+                    try {
+                        gain.gain.cancelScheduledValues(now);
+                        gain.gain.setValueAtTime(0, now); 
+                        oscillator.stop(now);
+                    } catch (e) {
+                       
+                    }
+                });
+            }
+            activeAlarmNodes = [];
+            
+            if (audioContext) {
+                try { audioContext.close(); } catch(e) {}
+                audioContext = null;
+            }
+            
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate(0);
+                }
+            } catch(e) {}
+            
+            console.log('🔇 Alarm stopped');
+        }
+
+        function stopAlarm() {
+            stopAlarmSound();
+            alertCount = 0;
+            alertBox.style.display = 'none';
+            alertBtn.style.display = 'none';
+            statusText.textContent = '✅ Alarm stopped';
+            statusText.style.color = '#26d07c';
+        }
+
+       
+        async function sendAlertWithLocation() {
+            try {
+                const location = await getLocation();
+                
+                const contactsResponse = await fetch(`${API_URL}/api/contacts`);
+                let contacts = [];
+                if (contactsResponse.ok) {
+                    contacts = await contactsResponse.json();
+                }
+                
+                if (contacts.length === 0) {
+                    successText.textContent = '⚠️ No contacts configured';
+                    successMessage.style.display = 'block';
+                    successMessage.style.borderLeftColor = '#ffb700';
+                    successMessage.style.color = '#ffb700';
+                    return;
+                }
+                
+                const emails = contacts.map(c => c.email).join(', ');
+                const timestamp = new Date().toLocaleString('en-US');
+                const locationText = location.success ? location.text : location.text;
+                const latitude = location.success ? location.latitude : '0.0';
+                const longitude = location.success ? location.longitude : '0.0';
+                const mapUrl = location.success ? location.url : '';
+                
+                const response = await fetch(`${API_URL}/api/send-alert`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: emails,
+                        location: locationText,
+                        timestamp: timestamp,
+                        test: false,
+                        latitude: latitude,
+                        longitude: longitude,
+                        mapUrl: mapUrl
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successText.textContent = `✅ Alert sent to ${contacts.length} contact(s) with location`;
+                    successMessage.style.display = 'block';
+                    successMessage.style.borderLeftColor = '#26d07c';
+                    successMessage.style.color = '#26d07c';
+                    console.log('✅ Alert sent:', data);
+                } else {
+                    successText.textContent = `❌ Error: ${data.error || 'Send failed'}`;
+                    successMessage.style.display = 'block';
+                    successMessage.style.borderLeftColor = '#ff6b6b';
+                    successMessage.style.color = '#ff6b6b';
+                }
+                
+            } catch (error) {
+                console.error('❌ Send error:', error);
+                successText.textContent = '❌ Error sending alert';
+                successMessage.style.display = 'block';
+                successMessage.style.borderLeftColor = '#ff6b6b';
+                successMessage.style.color = '#ff6b6b';
+            }
+        }
+
+        async function sendManualAlert() {
+            if (!confirm('📧 Send alert to all contacts with location?')) return;
+            await sendAlertWithLocation();
+            stopAlarmSound();
+            alertCount = 0;
+            alertBox.style.display = 'none';
+            alertBtn.style.display = 'none';
+        }
+
+        
+        async function checkServer() {
+            try {
+                console.log(`🔄 Checking server: ${API_URL}/health`);
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    isServerReady = true;
+                    startBtn.disabled = false;
+                    loadingIndicator.style.display = 'none';
+                    statusIcon.style.display = 'block';
+                    statusText.style.display = 'block';
+                    confidenceText.style.display = 'block';
+                    framesText.style.display = 'block';
+                    statusText.textContent = ' Ready - Press Start';
+                    statusText.style.color = '#26d07c';
+                    serverStatus.innerHTML = ` Server connected <span class="badge badge-online">ONLINE</span>`;
+                    serverStatus.className = 'info-box success';
+                    console.log('✅ YOLO Server OK');
+                    await getLocation();
+                    return true;
+                } else {
+                    console.error(`❌ Server response: ${response.status}`);
+                }
+            } catch (error) {
+                console.error(`❌ Connection error: ${error.message}`);
+            }
+            
+            serverStatus.innerHTML = `❌ Waiting for server... <span class="badge badge-offline">OFFLINE</span>`;
+            serverStatus.className = 'info-box warning';
+            setTimeout(checkServer, 3000);
+            return false;
+        }
+
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 640, 480);
+            return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        }
+
+        async function detectFrame() {
+            if (!isRunning || !video.srcObject) return;
+
+            try {
+                let result;
+                
+                if (isForceMode && forceResult) {
+                    result = forceResult;
+                } else {
+                    const imageBase64 = captureImage();
+                    const response = await fetch(`${API_URL}/api/detect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageBase64 })
+                });
+                    result = await response.json();
+                }
+                
+                frameCount++;
+                framesText.textContent = `Frames: ${frameCount}`;
+                
+                if (result.error) {
+                    console.error('❌ Error:', result.error);
+                    return;
+                }
+                
+                const confidence = result.confidence || 0;
+                const isDrowsy = result.isDrowsy || false;
+                const cls = result.class;
+                
+                classInfo.style.display = 'block';
+                if (cls === 0) classDisplay.textContent = 'Awake 😊';
+                else if (cls === 1) classDisplay.textContent = 'Drowsy 😴';
+                else classDisplay.textContent = 'Unknown ❓';
+                
+                confidenceText.textContent = `Confidence: ${Math.round(confidence * 100)}%`;
+                
+                if (isDrowsy || (isForceMode && forceResult && forceResult.isDrowsy)) {
+                    statusIcon.textContent = '⚠️';
+                    statusText.textContent = '⚠️ DROWSINESS DETECTED!';
+                    statusText.style.color = '#ff6b6b';
+                    alertBox.style.display = 'block';
+                    alertBtn.style.display = 'block';
+                    
+                    playAlarmSound();
+                    
+                    alertCount++;
+                    
+                    if (alertCount >= ALERT_THRESHOLD) {
+                        await sendAlertWithLocation();
+                        alertCount = 0;
+                    }
+                } else {
+                    statusIcon.textContent = '✅';
+                    statusText.textContent = '✅ DRIVER AWAKE';
+                    statusText.style.color = '#26d07c';
+                    alertBox.style.display = 'none';
+                    alertBtn.style.display = 'none';
+                    alertCount = 0;
+                    
+                    if (alarmActive) {
+                        stopAlarmSound();
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                statusText.textContent = '⚠️ Server error';
+                statusText.style.color = '#ff6b6b';
+            }
+
+            if (isRunning) {
+                setTimeout(detectFrame, 500);
+            }
+        }
+
+        async function forceDetection(type) {
+            if (!isRunning) {
+                alert('⏳ Start detection first!');
+                return;
+            }
+            
+            if (type === 'drowsy') {
+                isForceMode = true;
+                forceResult = {
+                    'awake': 0.1,
+                    'drowsy': 0.92,
+                    'isDrowsy': true,
+                    'confidence': 0.92,
+                    'class': 1,
+                    'status': '⚠️ DROWSY (TEST)'
+                };
+                alertBox.style.display = 'block';
+                statusIcon.textContent = '⚠️';
+                statusText.textContent = '⚠️ DROWSY (TEST)';
+                statusText.style.color = '#ff6b6b';
+                alertBtn.style.display = 'block';
+                
+                playAlarmSound();
+                alertCount++;
+                if (alertCount >= ALERT_THRESHOLD) {
+                    await sendAlertWithLocation();
+                    alertCount = 0;
+                }
+            } else {
+                isForceMode = true;
+                forceResult = {
+                    'awake': 0.95,
+                    'drowsy': 0.1,
+                    'isDrowsy': false,
+                    'confidence': 0.95,
+                    'class': 0,
+                    'status': '✅ AWAKE (TEST)'
+                };
+                alertBox.style.display = 'none';
+                alertBtn.style.display = 'none';
+                statusIcon.textContent = '✅';
+                statusText.textContent = '✅ AWAKE (TEST)';
+                statusText.style.color = '#26d07c';
+                stopAlarmSound();
+                alertCount = 0;
+            }
+            
+            confidenceText.textContent = `Confidence: ${Math.round(forceResult.confidence * 100)}%`;
+            classInfo.style.display = 'block';
+            classDisplay.textContent = forceResult.class === 0 ? 'Awake 😊' : 'Drowsy 😴';
+            
+            setTimeout(() => {
+                isForceMode = false;
+                forceResult = null;
+            }, 3000);
+        }
+
+      
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 640, height: 480 }
+                });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                console.log('✅ Camera OK');
+                await checkServer();
+            } catch (error) {
+                console.error('❌ Camera error:', error);
+                alert('❌ Unable to access camera.');
+            }
+        }
+
+        function toggleDetection() {
+            if (!isServerReady) {
+                alert('⏳ YOLO server not available');
+                return;
+            }
+            
+            isRunning = !isRunning;
+            frameCount = 0;
+            alertCount = 0;
+            isForceMode = false;
+            forceResult = null;
+
+            if (isRunning) {
+                startBtn.textContent = '⏹ Stop';
+                startBtn.className = 'btn-danger';
+                statusText.textContent = '🔍 Detection running...';
+                statusText.style.color = '#ffffff';
+                alertBox.style.display = 'none';
+                alertBtn.style.display = 'none';
+                detectFrame();
+            } else {
+                startBtn.textContent = '▶ Start';
+                startBtn.className = 'btn-primary';
+                statusText.textContent = '▶ Press Start';
+                statusText.style.color = '#ffffff';
+                alertBox.style.display = 'none';
+                alertBtn.style.display = 'none';
+                classInfo.style.display = 'none';
+                stopAlarmSound();
+                alertCount = 0;
+            }
+        }
+
+
+function loadDarkMode() {
+    const saved = localStorage.getItem('eyesense_settings');
+    if (saved) {
+        try {
+            const s = JSON.parse(saved);
+            const isDarkMode = s.darkMode !== undefined ? s.darkMode : true;
+            const video = document.getElementById('video');
+            
+            if (isDarkMode) {
+                if (video) {
+                    video.style.filter = 'brightness(0.8) contrast(1.1)';
+                }
+                document.body.style.background = 'linear-gradient(135deg, #ffffff 0%, #f5f7ff 30%, #ffffff 60%, #f5f7ff 100%)';
+                
+                if (!document.getElementById('nightOverlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'nightOverlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.2);
+                        pointer-events: none;
+                        z-index: 999;
+                        transition: opacity 0.5s ease;
+                    `;
+                    document.body.appendChild(overlay);
+                }
+                document.getElementById('nightOverlay').style.opacity = '1';
+                document.getElementById('nightOverlay').style.display = 'block';
+            } else {
+                if (video) {
+                    video.style.filter = '';
+                }
+                document.body.style.background = 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)';
+                const overlay = document.getElementById('nightOverlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 500);
+                }
+            }
+        } catch(e) {}
+    }
+}
+
+// Appeler au chargement
+document.addEventListener('DOMContentLoaded', loadDarkMode);
+       
+        window.addEventListener('load', initCamera);
+        window.addEventListener('beforeunload', () => {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+            stopAlarmSound();
+        });
+
+        console.log('✅ EyeSense YOLO Web ready!');
+        console.log(`📡 Server: ${API_URL}`);
+        console.log('🔊 Alarm sound active (infinite loop)');
+        console.log('📍 Auto location');
+    </script>
+</body>
+</html>

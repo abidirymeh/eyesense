@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EyeSense - Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0e27;
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 24px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .card {
+            background: rgba(26, 31, 58, 0.9);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+        }
+        .card h2 {
+            font-size: 17px;
+            color: #00d4ff;
+            margin-bottom: 16px;
+        }
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .toggle-group:last-child {
+            border-bottom: none;
+        }
+        .toggle-label {
+            font-size: 15px;
+        }
+        .toggle-label small {
+            display: block;
+            font-size: 12px;
+            color: #7b8fa3;
+        }
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #2a3050;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .switch input:checked + .slider {
+            background: #00d4ff;
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        .btn-danger {
+            color: #ff6b6b;
+            border-color: rgba(255,107,107,0.2);
+        }
+        .btn-danger:hover {
+            background: rgba(255,107,107,0.1);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 28px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+            max-width: 90%;
+        }
+        .toast.success {
+            border-left: 4px solid #26d07c;
+        }
+        .toast.error {
+            border-left: 4px solid #ff6b6b;
+        }
+        @media (max-width: 480px) {
+            header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⚙️ Settings</h1>
+        <button class="back-btn" onclick="window.location.href='/'">← Back</button>
+    </header>
+
+    <div class="card">
+    <h2>Appearance</h2>
+    <div class="toggle-group">
+        <div class="toggle-label">
+            🌙 Dark Mode
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="darkModeToggle" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+
+    <div class="card">
+        <h2>Notifications</h2>
+        <div class="toggle-group">
+            <div class="toggle-label">
+                Auto Email Alerts
+                <small>Send alerts automatically on drowsiness</small>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="autoEmailToggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="card" style="border-color: rgba(255,107,107,0.2);">
+        <button class="btn btn-danger" onclick="resetSettings()">Reset All Settings</button>
+    </div>
+</div>
+
+<script>
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+function applyDarkMode(enabled) {
+    const video = document.getElementById('video');
+    
+    if (enabled) {
+        if (video) {
+            video.style.filter = 'brightness(1.5) contrast(1.1)';
+                        video.style.boxShadow = '0 0 80px rgba(255,255,255,0.4), 0 0 120px rgba(100,150,255,0.1)';
+
+        }
+        
+        document.body.style.background = 'linear-gradient(135deg, #ffffff 0%, #e8eeff 50%, #ffffff 100%)';
+        
+        if (!document.getElementById('nightOverlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'nightOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.2);
+                pointer-events: none;
+                z-index: 999;
+                transition: opacity 0.5s ease;
+            `;
+            document.body.appendChild(overlay);
+        }
+        document.getElementById('nightOverlay').style.opacity = '1';
+        document.getElementById('nightOverlay').style.display = 'block';
+        
+        console.log('🌙 Dark Mode ON - Luminosité 80%');
+    } else {
+        if (video) {
+            video.style.filter = '';
+        }
+        document.body.style.background = 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)';
+        
+        const overlay = document.getElementById('nightOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 500);
+        }
+        
+        console.log('🌙 Dark Mode OFF');
+    }
+}
+
+function saveSettings() {
+    const settings = {
+        darkMode: document.getElementById('darkModeToggle').checked,
+        autoEmail: document.getElementById('autoEmailToggle').checked
+    };
+    localStorage.setItem('eyesense_settings', JSON.stringify(settings));
+    
+    applyDarkMode(settings.darkMode);
+    
+    showToast('Settings saved', 'success');
+}
+
+function loadSettings() {
+    const saved = localStorage.getItem('eyesense_settings');
+    if (saved) {
+        try {
+            const s = JSON.parse(saved);
+            document.getElementById('darkModeToggle').checked = s.darkMode !== undefined ? s.darkMode : true;
+            document.getElementById('autoEmailToggle').checked = s.autoEmail !== undefined ? s.autoEmail : true;
+            
+            if (s.darkMode) {
+                applyDarkMode(true);
+            }
+        } catch(e) {}
+    }
+}
+
+function resetSettings() {
+    if (!confirm('Reset all settings to defaults?')) return;
+    localStorage.removeItem('eyesense_settings');
+    document.getElementById('darkModeToggle').checked = true;
+    document.getElementById('autoEmailToggle').checked = true;
+    applyDarkMode(true);  
+    showToast('Settings reset', 'success');
+}
+
+document.getElementById('darkModeToggle').addEventListener('change', saveSettings);
+document.getElementById('autoEmailToggle').addEventListener('change', saveSettings);
+
+document.addEventListener('DOMContentLoaded', loadSettings);
+
+   
+</script>
+
+<div class="toast" id="toast"></div>
+</body>
+</html>
