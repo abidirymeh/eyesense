@@ -113,7 +113,7 @@ En cas de somnolence détectée, une alerte est déclenchée
 
 Application web
 ------------------
-Ouvrir https://192.168.1.65:3443 dans un navigateur
+Ouvrir https://localhost:3443 dans un navigateur
 Autoriser l'accès à la caméra
 Appuyer sur "Start" pour lancer la détection
 
