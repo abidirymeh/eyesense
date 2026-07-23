@@ -27,7 +27,7 @@ function generateCertificate() {
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
 
     const attrs = [
-        { name: 'commonName', value: '192.168.1.65' },
+        { name: 'commonName', value: 'localhost' },
         { name: 'countryName', value: 'FR' },
         { name: 'organizationName', value: 'EyeSense' },
         { name: 'organizationalUnitName', value: 'Security' }
@@ -40,7 +40,6 @@ function generateCertificate() {
         {
             name: 'subjectAltName',
             altNames: [
-                { type: 2, value: '192.168.1.65' },
                 { type: 2, value: 'localhost' },
                 { type: 2, value: '127.0.0.1' }
             ]
@@ -270,8 +269,8 @@ https.createServer({ key: cert.key, cert: cert.cert }, app).listen(HTTPS_PORT, '
     console.log('='.repeat(60));
     console.log('🔒 SERVEUR HTTPS SÉCURISÉ');
     console.log('='.repeat(60));
-    console.log(`📡 HTTPS: https://192.168.1.65:${HTTPS_PORT}`);
-    console.log(`📱 Téléphone: https://192.168.1.65:${HTTPS_PORT}`);
+    console.log(`📡 HTTPS: https://localhost:${HTTPS_PORT}`);
+    console.log(`📱 Accès depuis un autre appareil: https://[VOTRE_IP]:${HTTPS_PORT}`);
     console.log(`📧 Email: ${process.env.EMAIL_USER}`);
     console.log('');
     console.log('⚠️  Acceptez l\'avertissement de sécurité');
