@@ -1,138 +1,155 @@
-# 👁️ EyeSense - Détection de somnolence
+# 👁️ EyeSense - Drowsiness Detection
 
-Système de détection de somnolence en temps réel pour conducteurs, combinant une application mobile Android et une application web.
+A real-time drowsiness detection system for drivers, combining an Android mobile application and a web application.
 
 ---
 
-## 📖 Table des matières
+## 📖 Table of Contents
 
-- [À propos](#-à-propos)
-- [Fonctionnalités](#-fonctionnalités)
+- [About](#-about)
+- [Features](#-features)
 - [Technologies](#-technologies)
-- [Prérequis](#-prérequis)
+- [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
-- [Utilisation](#-utilisation)
-- [Structure du projet](#-structure-du-projet)
-- [Performances](#-performances)
-- [Auteur](#-auteur)
-- [Licence](#-licence)
+- [Usage](#-usage)
+- [Performance](#-performance)
+- [Author](#-author)
+- [License](#-license)
 
 ---
 
-## 📌 À propos
+## 📌 About
 
-La somnolence au volant est l'une des principales causes d'accidents de la route dans le monde. **EyeSense** est une solution complète qui détecte les signes de fatigue du conducteur en temps réel à l'aide de l'intelligence artificielle.
+Drowsy driving is one of the leading causes of road accidents worldwide. **EyeSense** is a complete solution that detects signs of driver fatigue in real time using artificial intelligence.
 
-Le projet repose sur le modèle **YOLO26n** pour la détection des yeux et de la bouche, et se décline en deux applications indépendantes :
+The project is built on the **YOLO26n** model for eye and mouth detection, and comes as two independent applications:
 
-- **Application mobile Android** : Détection hors ligne via TensorFlow Lite
-- **Application web** : Détection distante via serveur IA
+- **Android mobile app**: offline detection using TensorFlow Lite
+- **Web app**: remote detection through an AI server
 
 ---
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-### Application mobile (Android)
-- 📷 Détection en temps réel via la caméra frontale
-- 🧠 Inférence locale avec TensorFlow Lite (hors ligne)
-- 🔊 Alerte sonore et visuelle
-- 📧 Envoi d'emails d'alerte avec localisation GPS
-- 📇 Gestion des contacts d'urgence
-- 🌙 Mode nuit pour la conduite nocturne
+### Mobile app (Android)
+- 📷 Real-time detection via the front camera
+- 🧠 On-device inference with TensorFlow Lite (works offline)
+- 🔊 Audible and visual alerts
+- 📧 Alert emails with GPS location
+- 📇 Emergency contact management
+- 🌙 Night mode for night driving
 
-### Application web
-- 🌐 Accès depuis n'importe quel navigateur
-- 📷 Capture vidéo via WebRTC
-- 🧠 Inférence distante via serveur IA
-- 📧 Système d'alerte multi-canal
+<p align="center">
+  <img src="app_mobile.png" alt="EyeSense mobile app" width="600"/>
+</p>
+
+### Web app
+- 🌐 Accessible from any browser
+- 📷 Video capture via WebRTC
+- 🧠 Remote inference through an AI server
+- 📧 Multi-channel alert system
+
+<p align="center">
+  <img src="app_web.png" alt="EyeSense web app" width="600"/>
+</p>
 
 ---
 
 ## 🛠️ Technologies
 
-| Composant | Technologies |
+| Component | Technologies |
 |---|---|
-| **Intelligence Artificielle** | YOLO26n, PyTorch, Ultralytics, TensorFlow Lite |
-| **Application mobile** | Java, Android Studio, CameraX, Gson |
-| **Application web** | HTML5, CSS3, JavaScript, Node.js, Express, Flask |
+| **Artificial Intelligence** | YOLO26n, PyTorch, Ultralytics, TensorFlow Lite |
+| **Mobile app** | Java, Android Studio, CameraX, Gson |
+| **Web app** | HTML5, CSS3, JavaScript, Node.js, Express, Flask |
 
 ---
 
-## ⚙️ Prérequis
+## ⚙️ Prerequisites
 
-### Application mobile
+### Mobile app
 - Android Studio
-- SDK Android (minSdk 24, targetSdk 36)
-- Smartphone Android avec caméra frontale
+- Android SDK (minSdk 24, targetSdk 36)
+- Android smartphone with a front camera
 
-### Application web
+### Web app
 - Node.js >= 18.0
 - Python >= 3.10
-- npm ou yarn
+- npm or yarn
 
 ---
 
-## 🛠️ Installation
+## 🚀 Installation
 
-### Application mobile
+### Mobile app
 
 ```bash
-# 1. Ouvrir le projet avec Android Studio
+# 1. Open the project with Android Studio
 cd app_mobile
 
-# 2. Compiler et installer l'APK
-# Connecter un smartphone en mode débogage USB
-# Cliquer sur "Run" dans Android Studio
+# 2. Build and install the APK
+# Connect a smartphone with USB debugging enabled
+# Click "Run" in Android Studio
 ```
 
-### Application web
+### Web app
 
 ```bash
-# 1. Lancer le serveur IA (Python/Flask)
+# 1. Start the AI server (Python / Flask)
 cd ia
 pip install -r requirements.txt
 python yolo_server.py
 
-# 2. Lancer le serveur web (Node.js)
+# 2. Start the web server (Node.js) in another terminal
 cd ../app_web
 npm install
 npm start
 ```
 
-🚀 Utilisation
----------------
-Application mobile
-------------------
-Ouvrir l'application EyeSense sur le smartphone
+---
 
-Autoriser l'accès à la caméra et à la localisation
+## 🎯 Usage
 
-Appuyer sur "Démarrer" pour lancer la détection
+### Mobile app
 
-En cas de somnolence détectée, une alerte est déclenchée
+1. Open the EyeSense app on your smartphone
+2. Allow access to the camera and location
+3. Tap **"Start"** to begin detection
+4. When drowsiness is detected, an alert is triggered
 
-Application web
-------------------
-Ouvrir https://localhost:3443 dans un navigateur
-Autoriser l'accès à la caméra
-Appuyer sur "Start" pour lancer la détection
+### Web app
 
-En cas de somnolence, une alerte sonore est émise
+1. Open <https://localhost:3443> in a browser
+   > ⚠️ The certificate is self-signed, so the browser may show a warning: accept it to continue. HTTPS is required for camera access via WebRTC.
+2. Allow camera access
+3. Click **"Start"** to begin detection
+4. When drowsiness is detected, an audible alert is played
 
-## 📊 Performances
+---
 
-| Métrique | Valeur |
+## 📊 Performance
+
+| Metric | Value |
 |---|---|
-| Accuracy | 98,53 % |
-| Précision | 97,8 % |
-| Rappel | 98,6 % |
-| mAP50 | 99,2 % |
-| Taille TFLite (float32) | 9,27 Mo |
-| Taille TFLite (float16) | 4,72 Mo |
-| Latence mobile | ~125 ms |
+| Accuracy | 98.53 % |
+| Precision | 97.8 % |
+| Recall | 98.6 % |
+| mAP50 | 99.2 % |
+| TFLite size (float32) | 9.27 MB |
+| TFLite size (float16) | 4.72 MB |
+| Mobile latency | ~125 ms |
 
+---
 
-## 📬 Contact
-**Rimeh ABIDI**  
-📧 Email : [rimeh.abidi@enis.tn]  
-🔗 GitHub : [github.com/abidirymeh](https://github.com/abidirymeh)  
+## 👩‍💻 Author
+
+**Rimeh ABIDI**
+
+📧 Email: [rimeh.abidi@enis.tn](mailto:rimeh.abidi@enis.tn)
+🔗 GitHub: [github.com/abidirymeh](https://github.com/abidirymeh)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
