@@ -57,7 +57,7 @@ The project is built on the **YOLO26n** model for eye and mouth detection, and c
   <img src="app_web.png" alt="EyeSense web app" width="600"/>
 </p>
 <p align="center">
-  <img src="Détection_de_somnolence_en_temps_réel.png" alt="EyeSense web app" width="600"/>
+  <img src="Détection_de_somnolence_en temps_réel.png" alt="EyeSense web app" width="600"/>
 </p>
 
 ---
